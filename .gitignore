@@ -4,3 +4,4 @@ __pycache__/
 node_modules/
 .litellm/
 logs/
+.claude/settings.local.json
