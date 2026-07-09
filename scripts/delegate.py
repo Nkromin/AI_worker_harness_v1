@@ -71,7 +71,9 @@ def main() -> None:
     payload = {
         "model": "gemini-worker",
         "reasoning_effort": "low",  # maps to Gemini thinking_level: low; API default is HIGH
-        "max_tokens": 8000,
+        # thinking tokens count against this cap on Gemini 3; 8000 gets tight
+        # on multi-file test-suite tasks
+        "max_tokens": 16000,
         # temperature intentionally unset: Gemini 3 default (1.0) recommended,
         # low temps can cause looping
         "messages": [
@@ -96,9 +98,11 @@ def main() -> None:
         sys.exit(1)
 
     data = response.json()
-    content = data["choices"][0]["message"]["content"]
+    choice = data["choices"][0]
+    content = choice["message"]["content"]
     usage = data.get("usage", {})
 
+    # Written even when truncated, so the partial output can be inspected.
     out_path.write_text(content, encoding="utf-8")
     print(f"output: {out_path}")
     print(
@@ -108,6 +112,14 @@ def main() -> None:
             t=usage.get("total_tokens", "?"),
         )
     )
+
+    if choice.get("finish_reason") == "length":
+        print(
+            "WARNING: OUTPUT TRUNCATED (finish_reason=length) — do NOT apply; "
+            "re-delegate with a smaller brief.",
+            file=sys.stderr,
+        )
+        sys.exit(3)
 
 
 if __name__ == "__main__":
