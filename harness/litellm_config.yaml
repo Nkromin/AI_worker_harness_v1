@@ -1,0 +1,27 @@
+# BOOTSTRAP.md specifies gemini/gemini-3.1-pro-preview, but that model has ZERO
+# free-tier quota (429 "limit: 0" on every request). The provided keys are free-tier,
+# so the worker group runs on gemini-3-flash-preview (verified working on all 3 keys).
+# If you upgrade the keys to a paid plan, swap the model back to
+# gemini/gemini-3.1-pro-preview below — nothing else needs to change.
+model_list:
+  - model_name: gemini-worker
+    litellm_params:
+      model: gemini/gemini-3-flash-preview
+      api_key: os.environ/GEMINI_KEY_1
+  - model_name: gemini-worker
+    litellm_params:
+      model: gemini/gemini-3-flash-preview
+      api_key: os.environ/GEMINI_KEY_2
+  - model_name: gemini-worker
+    litellm_params:
+      model: gemini/gemini-3-flash-preview
+      api_key: os.environ/GEMINI_KEY_3
+
+router_settings:
+  routing_strategy: least-busy
+  num_retries: 2
+  allowed_fails: 2
+  cooldown_time: 60
+
+litellm_settings:
+  drop_params: true
